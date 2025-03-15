@@ -1,0 +1,6 @@
+streamlit
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn  # 如果有用 seaborn 畫圖
