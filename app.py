@@ -113,11 +113,7 @@ column_names = [
     "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
 ]
 
-# 確保列數一致
-if len(df_description.columns) == len(column_names):
-    df_description.columns = column_names
-else:
-    st.error("❌ 描述性統計列數與期望列數不符，請檢查數據框結構。")
+
 
 # 顯示描述性統計表格
 st.dataframe(df_description)
