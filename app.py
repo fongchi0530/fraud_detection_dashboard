@@ -105,10 +105,13 @@ if merchant_query:
 st.subheader("📊 數據特徵統計")
 df_description = df.describe()
 
-# 將列名稱轉換為中文
-df_description.columns = [
-    "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
-]
+# 檢查描述統計表的列數是否匹配
+if df_description.shape[1] == 8:
+    df_description.columns = [
+        "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
+    ]
+else:
+    st.error("描述性統計表格的列數與預期不符，請檢查數據框內容。")
 
 # 顯示更新後的描述性統計表格
 st.dataframe(df_description)
