@@ -107,10 +107,14 @@ st.subheader("📊 數據特徵統計")
 numeric_columns = df.select_dtypes(include=[np.number]).columns
 df_description = df[numeric_columns].describe()
 
-# 更新列名稱為中文
-df_description.columns = [
-    "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
-]
+# 檢查列數是否匹配
+num_columns = df_description.shape[1]
+if num_columns == 8:
+    df_description.columns = [
+        "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
+    ]
+else:
+    st.error("❌ 描述性統計列數與期望列數不符，請檢查數據結構。")
 
 # 顯示更新後的描述性統計表格
 st.dataframe(df_description)
