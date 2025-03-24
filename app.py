@@ -111,7 +111,7 @@ df_description.columns = [
 ]
 
 # 顯示更新後的描述性統計表格
-st.write(df_description)
+st.dataframe(df_description)
 
 # 分割數據集
 X = df[["交易金額", "評論數量", "退貨率", "價格波動", "銷售波動性", "評論變化率", "退貨率異常"]]
