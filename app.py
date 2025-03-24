@@ -4,12 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# 設定 Matplotlib 中文字型
+plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 用 SimHei
+plt.rcParams['axes.unicode_minus'] = False  # 避免負號顯示錯誤
+
 # 設定標題
 st.title("📊 商家風險數據分析儀表板")
 
 # 生成模擬數據
 np.random.seed(42)
-num_records = 1000  # 數據筆數
+num_records = 1000
 merchant_ids = [f"merchant_{i}" for i in range(1, num_records + 1)]
 product_ids = [f"product_{i % 100 + 1}" for i in range(num_records)]
 transaction_amounts = np.random.uniform(5, 500, num_records)
@@ -29,7 +33,7 @@ df = pd.DataFrame({
     "風險狀態": labels
 })
 
-# 提高可疑商家的異常特徵
+# 增強異常商家的異常特徵
 df.loc[df["風險狀態"] == 1, "退貨率"] = np.random.uniform(0.3, 0.6, df["風險狀態"].sum())
 df.loc[df["風險狀態"] == 1, "評論數量"] = np.random.randint(50, 300, df["風險狀態"].sum())
 
@@ -50,31 +54,42 @@ def get_risk_reason(row):
 
 df["可疑原因"] = df.apply(get_risk_reason, axis=1)
 
-# 顯示數據樣本（展開可疑原因）
+# 顯示數據樣本（可編輯）
 st.subheader("📋 數據樣本")
-st.dataframe(df.head(50), use_container_width=True)
+st.data_editor(df.head(50), use_container_width=True, hide_index=True)
 
 # 顯示總筆數
-st.write(f"📊 數據總量: {df.shape[0]} 筆")
+st.markdown(f"📊 **數據總量**: `{df.shape[0]}` 筆")
 
-# 繪製退貨率分佈
-st.subheader("📈 退貨率分佈圖")
-fig, ax = plt.subplots()
-sns.histplot(df["退貨率"], bins=30, kde=True, ax=ax)
+# 📈 退貨率分佈圖
+st.subheader("📈 退貨率分佈")
+fig, ax = plt.subplots(figsize=(8, 5))
+sns.histplot(df["退貨率"], bins=30, kde=True, ax=ax, color="skyblue")
+ax.set_title("退貨率分佈", fontsize=14)
 st.pyplot(fig)
 
-# 商家風險狀態比例圖
+# 📊 風險狀態比例圖（修正 Pie Chart 中文錯誤）
 st.subheader("📌 商家風險狀態比例")
-fig, ax = plt.subplots()
-df["風險狀態"].value_counts().plot.pie(autopct="%1.1f%%", labels=["正常商家", "可疑商家"], ax=ax)
+fig, ax = plt.subplots(figsize=(6, 6))
+colors = ["#1f77b4", "#ff7f0e"]
+df["風險狀態"].value_counts().plot.pie(
+    autopct="%1.1f%%",
+    labels=["正常", "可疑"],
+    colors=colors,
+    startangle=140,
+    wedgeprops={'linewidth': 2, 'edgecolor': 'white'},
+    ax=ax
+)
+ax.set_ylabel("")  # 移除 y 標籤
+ax.set_title("商家風險狀態比例", fontsize=14)
 st.pyplot(fig)
 
-# 允許使用者查詢特定商家
+# 🔍 查詢商家資料
 st.subheader("🔍 查詢商家資料")
-merchant_query = st.text_input("輸入商家 ID（例如：merchant_10）", "")
+merchant_query = st.text_input("輸入商家 ID（例如：merchant_10）", placeholder="請輸入完整商家 ID")
 if merchant_query:
     result = df[df["商家 ID"] == merchant_query]
     if not result.empty:
-        st.dataframe(result)  # 使用 dataframe 顯示完整內容
+        st.dataframe(result, use_container_width=True)
     else:
-        st.write("❌ 找不到該商家")
+        st.error("❌ 找不到該商家，請確認 ID 是否正確")
