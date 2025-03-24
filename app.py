@@ -127,8 +127,16 @@ if st.button('預測商家風險'):
         '評論數量': [review_count],
         '退貨率': [return_rate],
         '價格波動': [price_fluctuation],
-        '銷售波動性': [np.random.uniform(0, 0.5)]  # 隨便填一個數值來模擬
+        # 增加缺失的特徵
+        '銷售波動性': [np.random.uniform(0, 0.5)],  # 隨便填一個數值來模擬
+        '評論變化率': [np.random.uniform(-0.2, 0.2)],  # 假設評論變化率
+        '退貨率異常': [int(return_rate > 0.25)],  # 假設退貨率異常
+        '價格波動幅度': [abs(price_fluctuation) > 0.03]  # 假設價格波動幅度
     })
+
+    # 確保列名一致
+    expected_columns = ['交易金額', '評論數量', '退貨率', '價格波動', '銷售波動性', '評論變化率', '退貨率異常', '價格波動幅度']
+    input_data = input_data[expected_columns]
 
     # 預測風險
     prediction = model.predict(input_data)
