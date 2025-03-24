@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
 
-# 設定 Matplotlib 中文字型
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']  # Windows 用 Microsoft YaHei
-plt.rcParams['axes.unicode_minus'] = False  # 避免負號顯示錯誤
+# 載入訓練好的模型
+model = joblib.load('fraud_model.pkl')
 
 # 設定標題
 st.title("📊 商家風險數據分析儀表板")
@@ -75,7 +74,7 @@ sns.histplot(df["退貨率"], bins=30, kde=True, ax=ax, color="skyblue")
 ax.set_title("退貨率分佈", fontsize=14)
 st.pyplot(fig)
 
-# 📊 風險狀態比例圖（修正 Pie Chart 中文錯誤）
+# 📊 風險狀態比例圖
 st.subheader("📌 商家風險狀態比例")
 fig, ax = plt.subplots(figsize=(6, 6))
 colors = ["#1f77b4", "#ff7f0e"]
@@ -108,12 +107,32 @@ st.subheader("📊 數據特徵統計")
 numeric_columns = df.select_dtypes(include=[np.number]).columns
 df_description = df[numeric_columns].describe()
 
-# 動態生成中文列名
-column_names = [
-    "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
-]
-
-
-
 # 顯示描述性統計表格
 st.dataframe(df_description)
+
+# 預測商家風險
+st.subheader("🔮 預測商家風險")
+
+# 商家資料輸入
+transaction_amount = st.number_input("交易金額", min_value=0.0, max_value=500.0, step=1.0)
+review_count = st.number_input("評論數量", min_value=0, max_value=1000, step=1)
+return_rate = st.number_input("退貨率", min_value=0.0, max_value=0.6, step=0.01)
+price_fluctuation = st.number_input("價格波動", min_value=-0.05, max_value=0.05, step=0.01)
+
+# 當使用者點擊預測按鈕時
+if st.button('預測商家風險'):
+    # 創建特徵數據
+    input_data = pd.DataFrame({
+        '交易金額': [transaction_amount],
+        '評論數量': [review_count],
+        '退貨率': [return_rate],
+        '價格波動': [price_fluctuation],
+        '銷售波動性': [np.random.uniform(0, 0.5)]  # 隨便填一個數值來模擬
+    })
+
+    # 預測風險
+    prediction = model.predict(input_data)
+    risk = '可疑' if prediction[0] == 1 else '正常'
+
+    # 顯示結果
+    st.write(f"商家風險預測結果: {risk}")
