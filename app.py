@@ -101,6 +101,18 @@ if merchant_query:
     else:
         st.error("❌ 找不到該商家，請確認 ID 是否正確")
 
+# 顯示數據特徵的統計信息，並轉換統計列名稱為中文
+st.subheader("📊 數據特徵統計")
+df_description = df.describe()
+
+# 將列名稱轉換為中文
+df_description.columns = [
+    "數據筆數", "平均值", "標準差", "最小值", "25百分位", "50百分位", "75百分位", "最大值"
+]
+
+# 顯示更新後的描述性統計表格
+st.write(df_description)
+
 # 分割數據集
 X = df[["交易金額", "評論數量", "退貨率", "價格波動", "銷售波動性", "評論變化率", "退貨率異常"]]
 y = (df["風險狀態"] == "可疑").astype(int)
