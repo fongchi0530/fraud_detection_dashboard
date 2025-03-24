@@ -3,19 +3,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-# 設定 Matplotlib 中文字型
-plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 用 SimHei
-plt.rcParams['axes.unicode_minus'] = False  # 避免負號顯示錯誤
+from sklearn.model_selection import train_test_split
 
 # 設定標題
-st.title("📊 商家風險數據分析儀表板")
+st.title("📊 商家風險數據分析與特徵構造")
 
 # 生成模擬數據
 np.random.seed(42)
 num_records = 1000
 merchant_ids = [f"merchant_{i}" for i in range(1, num_records + 1)]
-product_ids = [f"product_{i % 100 + 1}" for i in range(num_records)]
 transaction_amounts = np.random.uniform(5, 500, num_records)
 review_counts = np.random.poisson(5, num_records)
 return_rates = np.random.uniform(0, 0.2, num_records)
@@ -25,7 +21,6 @@ labels = np.random.choice([0, 1], size=num_records, p=[0.8, 0.2])  # 80% 正常�
 # 創建 DataFrame
 df = pd.DataFrame({
     "商家 ID": merchant_ids,
-    "商品 ID": product_ids,
     "交易金額": transaction_amounts,
     "評論數量": review_counts,
     "退貨率": return_rates,
@@ -33,63 +28,29 @@ df = pd.DataFrame({
     "風險狀態": labels
 })
 
-# 增強異常商家的異常特徵
+# 增強異常商家特徵
 df.loc[df["風險狀態"] == 1, "退貨率"] = np.random.uniform(0.3, 0.6, df["風險狀態"].sum())
 df.loc[df["風險狀態"] == 1, "評論數量"] = np.random.randint(50, 300, df["風險狀態"].sum())
 
-# 替換數值標籤為文字標籤
+# 數據特徵構造
+df["銷售波動性"] = df["交易金額"].rolling(10).std().fillna(0) / df["交易金額"].rolling(10).mean().fillna(1)
+df["評論變化率"] = df["評論數量"].pct_change().fillna(0)
+df["退貨率異常"] = (df["退貨率"] > 0.25).astype(int)
+df["價格波動幅度"] = abs(df["價格波動"]) > 0.03
+
+# 轉換標籤
 df["風險狀態"] = df["風險狀態"].map({0: "正常", 1: "可疑"})
 
-# 定義可疑原因
-def get_risk_reason(row):
-    reasons = []
-    if row["風險狀態"] == "可疑":
-        if row["退貨率"] > 0.3:
-            reasons.append("高退貨率 (>30%)")
-        if row["評論數量"] > 100:
-            reasons.append("過多評論數 (>100)")
-        if abs(row["價格波動"]) > 0.03:
-            reasons.append("價格波動過大 (>±3%)")
-    return "，".join(reasons) if reasons else "無"
-
-df["可疑原因"] = df.apply(get_risk_reason, axis=1)
-
-# 顯示數據樣本（可編輯）
+# 顯示數據樣本
 st.subheader("📋 數據樣本")
-st.data_editor(df.head(50), use_container_width=True, hide_index=True)
+st.dataframe(df.head(50))
 
-# 顯示總筆數
-st.markdown(f"📊 **數據總量**: `{df.shape[0]}` 筆")
+# 顯示新特徵的統計資訊
+st.subheader("📈 特徵統計資訊")
+st.write(df.describe())
 
-# 📈 退貨率分佈圖
-st.subheader("📈 退貨率分佈")
-fig, ax = plt.subplots(figsize=(8, 5))
-sns.histplot(df["退貨率"], bins=30, kde=True, ax=ax, color="skyblue")
-ax.set_title("退貨率分佈", fontsize=14)
-st.pyplot(fig)
-
-# 📊 風險狀態比例圖（修正 Pie Chart 中文錯誤）
-st.subheader("📌 商家風險狀態比例")
-fig, ax = plt.subplots(figsize=(6, 6))
-colors = ["#1f77b4", "#ff7f0e"]
-df["風險狀態"].value_counts().plot.pie(
-    autopct="%1.1f%%",
-    labels=["正常", "可疑"],
-    colors=colors,
-    startangle=140,
-    wedgeprops={'linewidth': 2, 'edgecolor': 'white'},
-    ax=ax
-)
-ax.set_ylabel("")  # 移除 y 標籤
-ax.set_title("商家風險狀態比例", fontsize=14)
-st.pyplot(fig)
-
-# 🔍 查詢商家資料
-st.subheader("🔍 查詢商家資料")
-merchant_query = st.text_input("輸入商家 ID（例如：merchant_10）", placeholder="請輸入完整商家 ID")
-if merchant_query:
-    result = df[df["商家 ID"] == merchant_query]
-    if not result.empty:
-        st.dataframe(result, use_container_width=True)
-    else:
-        st.error("❌ 找不到該商家，請確認 ID 是否正確")
+# 分割數據集
+X = df[["交易金額", "評論數量", "退貨率", "價格波動", "銷售波動性", "評論變化率", "退貨率異常"]]
+y = (df["風險狀態"] == "可疑").astype(int)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+st.success("✅ 特徵構造完成，數據已準備好進行 AI 模型訓練！")
