@@ -181,56 +181,71 @@ for msg in st.session_state.chat_openrouter:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
+import requests
+
+st.subheader("🤖 小詐詐 GPT 聊天助手")
+
+# 初始化聊天歷史紀錄
+if "chat_openrouter" not in st.session_state:
+    st.session_state.chat_openrouter = []
+
+# 顯示歷史對話訊息
+for msg in st.session_state.chat_openrouter:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
 # 使用者輸入
 user_input = st.chat_input("請描述你遇到的情況，例如：有人叫我加 LINE 匯款")
 
 if user_input and user_input.strip():
+    # 儲存使用者訊息
     st.session_state.chat_openrouter.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # 系統提示語 + 歷史對話
+    # 系統指令（角色設定）+ 對話歷史
     messages = [
-    {
+        {
             "role": "system",
             "content": (
                 "你是『小詐詐🕵️‍♂️』，一個警覺又親切的詐騙風險小助手。"
                 "你只使用中文回答，會針對使用者的敘述提供直白、實用的判斷與建議，"
                 "若有可疑情境請勇敢提醒，並提示使用者保留證據、避免轉帳、不要加陌生人 LINE。"
                 "請避免使用英文或過於模糊的話語，要簡潔清楚、有點人情味。"
-         )
-     }
+            )
+        }
     ] + st.session_state.chat_openrouter
 
+    # OpenRouter API headers 與資料
     headers = {
         "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
-        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 改成你網站網址
+        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 請改成你的實際網址
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": "gryphe/mythomax-l2-13b",
+        "model": "gryphe/mythomax-l2-13b",  # 使用穩定支援中文的免費模型
         "messages": messages
     }
 
     try:
-        with st.spinner("小詐詐思考中...🧠"):
+        with st.spinner("小詐詐努力判斷中，請稍候...🧠"):
             response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
             res_json = response.json()
-
-            # Debug 印出錯誤回傳（可刪）
-            # st.write(res_json)
 
             if "choices" in res_json:
                 reply = res_json["choices"][0]["message"]["content"]
             elif "error" in res_json:
                 reply = f"⚠️ API 錯誤：{res_json['error'].get('message', '未知錯誤')}"
             else:
-                reply = "⚠️ 無法取得回應，請稍後再試～"
+                reply = "⚠️ 小詐詐無法取得回應，請稍後再試～"
 
     except Exception as e:
         reply = f"⚠️ 小詐詐出現例外錯誤：{str(e)}"
 
+    # 顯示回覆
     with st.chat_message("assistant"):
         st.markdown(reply)
+
+    # 儲存小詐詐的回應
     st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
