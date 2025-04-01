@@ -110,8 +110,8 @@ st.dataframe(df_description)
 st.subheader("🔍 詐騙風險檢測表單")
 
 with st.form("fraud_form"):
-    transaction_amount = st.number_input("💵 交易金額", min_value=0.0, max_value=500.0, step=1.0)
-    review_count = st.number_input("📝 評論數量", min_value=0, max_value=1000, step=1)
+    transaction_amount = st.number_input("💵 交易金額", min_value=0.0, max_value=50000.0, step=1.0)
+    review_count = st.number_input("📝 評論數量", min_value=0, max_value=10000, step=1)
     return_rate = st.slider("📦 退貨率", min_value=0.0, max_value=0.6, step=0.01)
     price_fluctuation = st.slider("💹 價格波動（正負%)", min_value=-0.05, max_value=0.05, step=0.01)
 
@@ -141,3 +141,50 @@ if submit:
         st.error(f"⚠️ 這可能是可疑商家！風險分數：{risk_score:.2f}")
     else:
         st.success(f"✅ 看起來是正常商家，風險分數：{risk_score:.2f}")
+
+import requests
+
+st.subheader("🤖 小詐詐 GPT 聊天助手")
+
+if "chat_openrouter" not in st.session_state:
+    st.session_state.chat_openrouter = []
+
+# 顯示歷史訊息
+for msg in st.session_state.chat_openrouter:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# 使用者輸入
+user_input = st.chat_input("請描述你遇到的情況，例如：有人叫我加 LINE 匯款")
+
+if user_input:
+    st.session_state.chat_openrouter.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    # 設定 OpenRouter API 參數
+    headers = {
+        "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+        "HTTP-Referer": "https://your-app-name.streamlit.app",  # 請改成你的實際網址！
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": "mistralai/mistral-7b-instruct",  # 這是目前穩定、免費的聊天模型之一
+        "messages": [
+            {"role": "system", "content": "你是小詐詐🕵️，一個親切但警覺的詐騙風險小助手，會用溫和語氣提醒使用者避免受騙。"},
+            *st.session_state.chat_openrouter,
+        ]
+    }
+
+    # 發送請求
+    try:
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+        reply = response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        reply = f"⚠️ 抱歉，小詐詐出現錯誤啦：{str(e)}"
+
+    # 顯示並儲存回覆
+    with st.chat_message("assistant"):
+        st.markdown(reply)
+    st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
