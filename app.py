@@ -146,6 +146,7 @@ import requests
 
 st.subheader("🤖 小詐詐 GPT 聊天助手")
 
+# 初始化聊天歷史
 if "chat_openrouter" not in st.session_state:
     st.session_state.chat_openrouter = []
 
@@ -154,7 +155,7 @@ for msg in st.session_state.chat_openrouter:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 使用者輸入
+# 使用者輸入訊息
 user_input = st.chat_input("請描述你遇到的情況，例如：有人叫我加 LINE 匯款")
 
 if user_input and user_input.strip():
@@ -162,31 +163,29 @@ if user_input and user_input.strip():
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # 設定 OpenRouter API 參數
+    # GPT prompt + history
+    messages = [
+        {"role": "system", "content": "你是『小詐詐🕵️‍♂️』，一個只使用中文、親切但警覺的詐騙風險小助手。根據使用者的敘述，請清楚判斷是否為詐騙情況，並給出具體建議。請避免使用英文，請勿亂搞，保持穩定語氣。"}
+    ] + st.session_state.chat_openrouter
+
     headers = {
         "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
-        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 請改成你的實際網址！
+        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 請改成你的網站實際網址
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": "openchat/openchat-3.5-1210",  # 換成這個
-        "messages": [
-            {"role": "system", "content": "你是『小詐詐🕵️‍♂️』，一個只使用中文、親切但警覺的詐騙風險小助手。根據使用者的敘述，請清楚判斷是否為詐騙情況，並給出具體建議。請避免使用英文，請勿亂搞，保持穩定語氣。"}
-            *st.session_state.chat_openrouter,
-        ]
+        "model": "openchat/openchat-3.5-1210",
+        "messages": messages
     }
 
-    # 發送請求
     try:
         with st.spinner("小詐詐思考中...🧠"):
-    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-        reply = response.json()["choices"][0]["message"]["content"]
+            response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+            reply = response.json()["choices"][0]["message"]["content"]
     except Exception as e:
         reply = f"⚠️ 抱歉，小詐詐出現錯誤啦：{str(e)}"
 
-    # 顯示並儲存回覆
     with st.chat_message("assistant"):
         st.markdown(reply)
     st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
