@@ -204,7 +204,7 @@ if user_input and user_input.strip():
     }
 
     data = {
-        "model": "openchat/openchat-3.5-1210",
+        "model": "gryphe/mythomax-l2-13b",
         "messages": messages
     }
 
