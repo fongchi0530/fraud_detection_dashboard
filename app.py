@@ -4,10 +4,10 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import gspread
+import gspread 
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-
+import json
 
 # 載入訓練好的模型
 model = joblib.load('fraud_model.pkl')
@@ -18,9 +18,7 @@ st.title("📊 商家風險數據分析儀表板")
 st.sidebar.title("👤 使用者資訊")
 user_name = st.sidebar.text_input("請輸入你的暱稱", placeholder="例如：小美")
 
-if not user_name:
-    st.warning("請在左側輸入你的暱稱才能使用聊天功能 🙋‍♀️")
-    st.stop()
+
 
 
 
@@ -222,8 +220,7 @@ if user_input and user_input.strip():
 
 
     # ✅ 儲存對話到 Google Sheet
-    save_chat_to_google_sheet(user_name, user_input, reply)
-
+    save_chat_to_google_sheet(user_name or "匿名", user_input, reply)
 
 
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
@@ -231,7 +228,8 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         scope = ["https://spreadsheets.google.com/feeds",
                  "https://www.googleapis.com/auth/spreadsheets",
                  "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        creds_dict = json.loads(st.secrets["gcp_service_account"])
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
 
         sheet = client.open("小詐詐聊天紀錄").sheet1  # ← 請確認試算表名稱要一致
