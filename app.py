@@ -219,9 +219,6 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
 
-    # ✅ 儲存對話到 Google Sheet
-    save_chat_to_google_sheet(user_name , user_input, reply)
-
 
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
@@ -238,4 +235,7 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     except Exception as e:
         st.warning(f"⚠️ Google Sheet 儲存失敗：{str(e)}")
 
+
+    # ✅ 儲存對話到 Google Sheet
+    save_chat_to_google_sheet(user_name , user_input, reply)
 
