@@ -21,7 +21,7 @@ st.sidebar.title("👤 使用者資訊")
 user_name = st.sidebar.text_input("請輸入你的暱稱（可留空）", placeholder="例如：小美")
 
 if user_name is None:
-    user_name = ""
+    user_name = "匿名"
 
 # 生成模擬數據（這裡調整成更合理的範圍）
 np.random.seed(42)
@@ -219,11 +219,11 @@ if user_input and user_input.strip():
         st.markdown(reply)
     st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
 
-    st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-    
+    save_chat_to_google_sheet(user_name, user_input, reply)
+
 
 # ------------------ 函式：寫入 Google Sheet ------------------
-def save_chat_to_google_sheet(user_name, user_input, reply):
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
         st.toast("\U0001F4BE 進入儲存函式！")
         st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
@@ -246,15 +246,12 @@ def save_chat_to_google_sheet(user_name, user_input, reply):
 
         taipei_tz = pytz.timezone("Asia/Taipei")
         timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
-        row_data = [timestamp, user_name, user_input, reply]
+        row_data = [timestamp, user_name, user_msg, bot_msg]
         st.write(f"📤 嘗試寫入數據：{row_data}")
-        st.write("🚀 準備執行 sheet.append_row")
         sheet.append_row(row_data)
-        st.write("✅ append_row 成功執行")
         st.write("✅ 成功寫入試算表！")
 
     except gspread.exceptions.APIError as e:
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
     except Exception as e:
         st.error(f"⚠️ 其他錯誤：{str(e)}")
-    save_chat_to_google_sheet(user_name, user_input, reply)
