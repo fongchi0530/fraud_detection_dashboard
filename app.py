@@ -219,7 +219,7 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
 
-ddef save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
         st.write("🛠️ 嘗試寫入 Google Sheet...")
 
