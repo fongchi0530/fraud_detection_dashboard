@@ -182,7 +182,6 @@ for msg in st.session_state.chat_openrouter:
         st.markdown(msg["content"])
 
 import requests
-
 st.subheader("🤖 小詐詐 GPT 聊天助手")
 
 # 初始化聊天歷史紀錄
@@ -216,15 +215,14 @@ if user_input and user_input.strip():
         }
     ] + st.session_state.chat_openrouter
 
-    # OpenRouter API headers 與資料
     headers = {
         "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
-        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 請改成你的實際網址
+        "HTTP-Referer": "https://chihlee-frauddetectiondashboard.streamlit.app",  # 改成你的實際網址
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": "gryphe/mythomax-l2-13b",  # 使用穩定支援中文的免費模型
+        "model": "gryphe/mythomax-l2-13b",
         "messages": messages
     }
 
