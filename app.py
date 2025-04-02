@@ -223,7 +223,7 @@ if user_input and user_input.strip():
     save_chat_to_google_sheet(user_name , user_input, reply)
 
 
-def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+ddef save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
         scope = ["https://spreadsheets.google.com/feeds",
                  "https://www.googleapis.com/auth/spreadsheets",
@@ -232,9 +232,10 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
 
-        sheet = client.open("小詐詐聊天紀錄").sheet1  # ← 請確認試算表名稱要一致
+        sheet = client.open("小詐詐聊天紀錄").sheet1  # ← 試算表名稱請確保一致
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sheet.append_row([timestamp, user_name, user_msg, bot_msg])
     except Exception as e:
         st.warning(f"⚠️ Google Sheet 儲存失敗：{str(e)}")
+
 
