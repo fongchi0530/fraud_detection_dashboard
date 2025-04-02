@@ -241,7 +241,8 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         sheet = client.open("小詐詐聊天紀錄").sheet1
         st.write("✅ 試算表成功打開！")
 
-        timestamp = datetime.now().strftime("Asia/Taipei")
+        taipei_tz = pytz.timezone("Asia/Taipei")
+        timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
         row_data = [timestamp, user_name, user_msg, bot_msg]
         st.write(f"📤 嘗試寫入數據：{row_data}")
         sheet.append_row(row_data)
