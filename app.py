@@ -218,8 +218,6 @@ if user_input and user_input.strip():
         st.markdown(reply)
     st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
 
-    # ✅ 呼叫寫入 Google Sheet
-    save_chat_to_google_sheet(user_name, user_input, reply)
 
 # ------------------ 函式：寫入 Google Sheet ------------------
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
