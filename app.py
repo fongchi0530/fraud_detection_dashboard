@@ -221,10 +221,10 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
     
-    save_chat_to_google_sheet(user_name, messages, response)
+    save_chat_to_google_sheet(user_name, user_input, reply)
 
 # ------------------ 函式：寫入 Google Sheet ------------------
-def save_chat_to_google_sheet(user_name, messages, response):
+def save_chat_to_google_sheet(user_name, user_input, reply):
     try:
         st.toast("\U0001F4BE 進入儲存函式！")
         st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
@@ -247,7 +247,7 @@ def save_chat_to_google_sheet(user_name, messages, response):
 
         taipei_tz = pytz.timezone("Asia/Taipei")
         timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
-        row_data = [timestamp, user_name, messages, response]
+        row_data = [timestamp, user_name, user_input, reply]
         st.write(f"📤 嘗試寫入數據：{row_data}")
         st.write("🚀 準備執行 sheet.append_row")
         sheet.append_row(row_data)
