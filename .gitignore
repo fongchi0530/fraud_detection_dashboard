@@ -1,0 +1,17 @@
+# 不要上傳憑證檔
+credentials.json
+
+# Python 常見暫存檔
+__pycache__/
+*.py[cod]
+*.pkl
+*.joblib
+
+# VSCode
+.vscode/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Mac 系統檔案
+.DS_Store
