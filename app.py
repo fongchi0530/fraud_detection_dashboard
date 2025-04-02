@@ -218,7 +218,6 @@ if user_input and user_input.strip():
 
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-st.write(f"📤 即將儲存對話：使用者 `{user_name}` 說 `{user_input}`，機器人回應 `{reply}`")
 
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
