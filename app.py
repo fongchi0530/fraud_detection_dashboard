@@ -4,12 +4,25 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
+
 
 # 載入訓練好的模型
 model = joblib.load('fraud_model.pkl')
 
 # 設定標題
 st.title("📊 商家風險數據分析儀表板")
+
+st.sidebar.title("👤 使用者資訊")
+user_name = st.sidebar.text_input("請輸入你的暱稱", placeholder="例如：小美")
+
+if not user_name:
+    st.warning("請在左側輸入你的暱稱才能使用聊天功能 🙋‍♀️")
+    st.stop()
+
+
 
 # 生成模擬數據（這裡調整成更合理的範圍）
 np.random.seed(42)
@@ -206,5 +219,24 @@ if user_input and user_input.strip():
     with st.chat_message("assistant"):
         st.markdown(reply)
 
-    # 儲存小詐詐的回應
-    st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
+
+
+    # ✅ 儲存對話到 Google Sheet
+    save_chat_to_google_sheet(user_name, user_input, reply)
+
+
+
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+    try:
+        scope = ["https://spreadsheets.google.com/feeds",
+                 "https://www.googleapis.com/auth/spreadsheets",
+                 "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        client = gspread.authorize(creds)
+
+        sheet = client.open("小詐詐聊天紀錄").sheet1  # ← 請確認試算表名稱要一致
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        sheet.append_row([timestamp, user_name, user_msg, bot_msg])
+    except Exception as e:
+        st.warning(f"⚠️ Google Sheet 儲存失敗：{str(e)}")
+
