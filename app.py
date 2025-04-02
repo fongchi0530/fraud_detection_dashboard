@@ -221,7 +221,6 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
     
-    save_chat_to_google_sheet(user_name, user_input, reply)
 
 # ------------------ 函式：寫入 Google Sheet ------------------
 def save_chat_to_google_sheet(user_name, user_input, reply):
@@ -258,3 +257,4 @@ def save_chat_to_google_sheet(user_name, user_input, reply):
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
     except Exception as e:
         st.error(f"⚠️ 其他錯誤：{str(e)}")
+    save_chat_to_google_sheet(user_name, user_input, reply)
