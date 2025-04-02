@@ -215,6 +215,11 @@ if user_input and user_input.strip():
     # 顯示回覆
     with st.chat_message("assistant"):
         st.markdown(reply)
+try:
+    creds_dict = json.loads(st.secrets["gcp_service_account"])
+    st.write("✅ 成功讀取 Google API 金鑰")
+except Exception as e:
+    st.error(f"⚠️ Google API 金鑰讀取失敗: {str(e)}")
 
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
