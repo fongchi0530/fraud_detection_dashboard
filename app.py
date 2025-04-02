@@ -4,10 +4,11 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import gspread 
+import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import json
+import requests
 
 # 載入訓練好的模型
 model = joblib.load('fraud_model.pkl')
@@ -179,7 +180,7 @@ if user_input and user_input.strip():
             "role": "system",
             "content": (
                 "你是『小詐詐🕵️‍♂️』，一個警覺又親切的詐騙風險小助手。"
-                "你只使用中文回答，會針對使用者的敘述提供直白、實用的判斷與建議，"
+                "你只使用繁體中文回答，會針對使用者的敘述提供直白、實用的判斷與建議，"
                 "若有可疑情境請勇敢提醒，並提示使用者保留證據、避免轉帳、不要加陌生人 LINE。"
                 "請避免使用英文或過於模糊的話語，要簡潔清楚、有點人情味。"
             )
@@ -215,36 +216,35 @@ if user_input and user_input.strip():
     # 顯示回覆
     with st.chat_message("assistant"):
         st.markdown(reply)
+    st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
 
+    # ✅ 呼叫寫入 Google Sheet
+    save_chat_to_google_sheet(user_name, user_input, reply)
 
-    st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-
+# ------------------ 函式：寫入 Google Sheet ------------------
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
+        st.toast("\U0001F4BE 進入儲存函式！")
+        st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
         st.write("🛠️ 嘗試寫入 Google Sheet...")
 
-        # **1. 讀取憑證**
         creds_dict = json.loads(st.secrets["gcp_service_account"])
         st.write("✅ 成功讀取 Google API 金鑰")
 
-        # **2. 建立授權**
         scope = [
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive"
         ]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-        client = gspread.authorize(creds)  # **← 這行確保 `client` 變數被定義**
+        client = gspread.authorize(creds)
         st.write("✅ 成功授權 Google Sheets API")
 
-        # **3. 開啟試算表**
         sheet = client.open("小詐詐聊天紀錄").sheet1
         st.write("✅ 試算表成功打開！")
 
-        # **4. 記錄時間並寫入資料**
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         row_data = [timestamp, user_name, user_msg, bot_msg]
-
         st.write(f"📤 嘗試寫入數據：{row_data}")
         sheet.append_row(row_data)
         st.write("✅ 成功寫入試算表！")
