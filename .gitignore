@@ -1,17 +1,21 @@
-# 不要上傳憑證檔
-credentials.json
-
-# Python 常見暫存檔
+# Python 編譯檔案
+*.pyc
+*.pyo
 __pycache__/
-*.py[cod]
-*.pkl
-*.joblib
 
-# VSCode
+# 敏感資料（憑證）
+credentials.json
+.env
+
+# 資料夾忽略
+venv/
+env/
+__pycache__/
+
+# IDE 和編輯器的設定檔
 .vscode/
+.idea/
 
-# Jupyter notebook checkpoints
-.ipynb_checkpoints/
-
-# Mac 系統檔案
+# 操作系統生成的檔案
 .DS_Store
+Thumbs.db
