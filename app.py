@@ -218,35 +218,47 @@ if user_input and user_input.strip():
 
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-
-def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
-    st.write("🛠️ save_chat_to_google_sheet 函式開始執行...")
-    st.write(f"使用者名稱: {user_name}, 使用者訊息: {user_msg}, 機器人回應: {bot_msg}")
+st.write(f"📤 即將儲存對話：使用者 `{user_name}` 說 `{user_input}`，機器人回應 `{reply}`")
 
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
-        st.write("🛠️ 開始執行 save_chat_to_google_sheet")
+        st.write("🛠️ 開始執行 `save_chat_to_google_sheet` 函式...")
 
-        # 讀取 Google Sheets API 憑證
-        scope = ["https://spreadsheets.google.com/feeds",
-                 "https://www.googleapis.com/auth/spreadsheets",
-                 "https://www.googleapis.com/auth/drive"]
-
-        creds_dict = json.loads(st.secrets["gcp_service_account"])
+        # **讀取 Google Sheets API 憑證**
+        try:
+            creds_dict = json.loads(st.secrets["gcp_service_account"])
+        except KeyError:
+            st.error("⚠️ 無法讀取 `gcp_service_account`，請確認 `secrets.toml` 設定是否正確！")
+            return
+        except json.JSONDecodeError:
+            st.error("⚠️ `gcp_service_account` 格式錯誤，請確認是否為正確的 JSON 格式！")
+            return
+        
         st.write("✅ 成功讀取 API 憑證")
 
+        # **設定 Google Sheets API 權限**
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         st.write("✅ 成功授權 Google Sheets API")
 
-        # 開啟試算表
-        sheet = client.open("小詐詐聊天紀錄").sheet1
-        st.write("✅ 成功開啟試算表")
+        # **開啟試算表**
+        try:
+            sheet_name = st.secrets.get("spreadsheet_name", "小詐詐聊天紀錄")  # 預設名稱
+            sheet = client.open(sheet_name).sheet1
+            st.write(f"✅ 成功開啟試算表：{sheet_name}")
+        except gspread.SpreadsheetNotFound:
+            st.error(f"⚠️ 找不到試算表 `{sheet_name}`，請確認名稱是否正確！")
+            return
 
-        # 記錄時間
+        # **取得當前時間**
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # 插入新的一行
+
+        # **插入新的一行**
         sheet.append_row([timestamp, user_name, user_msg, bot_msg])
         st.write("✅ 成功寫入資料到試算表")
 
@@ -254,11 +266,4 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
     except Exception as e:
         st.error(f"⚠️ 其他錯誤：{str(e)}")
-
-
-
-
-
-    # ✅ 儲存對話到 Google Sheet
-    save_chat_to_google_sheet(user_name , user_input, reply)
 
