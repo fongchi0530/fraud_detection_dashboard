@@ -141,45 +141,7 @@ if submit:
         st.error(f"⚠️ 這可能是可疑商家！風險分數：{risk_score:.2f}")
     else:
         st.success(f"✅ 看起來是正常商家，風險分數：{risk_score:.2f}")
-
-import requests
-
-st.subheader("🤖 小詐詐 GPT 聊天助手")
-
-# 初始化聊天歷史
-if "chat_openrouter" not in st.session_state:
-    st.session_state.chat_openrouter = []
-
-# 顯示歷史訊息
-for msg in st.session_state.chat_openrouter:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-import requests
-
-st.subheader("🤖 小詐詐 GPT 聊天助手")
-
-# 初始化聊天歷史
-if "chat_openrouter" not in st.session_state:
-    st.session_state.chat_openrouter = []
-
-# 顯示歷史訊息
-for msg in st.session_state.chat_openrouter:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-
-st.subheader("🤖 小詐詐 GPT 聊天助手")
-
-# 初始化聊天歷史
-if "chat_openrouter" not in st.session_state:
-    st.session_state.chat_openrouter = []
-
-# 顯示歷史訊息
-for msg in st.session_state.chat_openrouter:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
+        
 import requests
 st.subheader("🤖 小詐詐 GPT 聊天助手")
 
