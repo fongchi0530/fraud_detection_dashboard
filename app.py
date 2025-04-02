@@ -16,7 +16,7 @@ model = joblib.load('fraud_model.pkl')
 st.title("📊 商家風險數據分析儀表板")
 
 st.sidebar.title("👤 使用者資訊")
-user_name = st.sidebar.text_input("請輸入你的暱稱", placeholder="例如：小美")
+user_name = st.sidebar.text_input("請輸入你的暱稱（可留空）", placeholder="例如：小美")
 
 
 
