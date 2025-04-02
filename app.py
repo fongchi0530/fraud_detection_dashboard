@@ -9,6 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import json
 import requests
+import pytz
 
 # 載入訓練好的模型
 model = joblib.load('fraud_model.pkl')
