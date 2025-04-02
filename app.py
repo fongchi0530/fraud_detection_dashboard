@@ -221,7 +221,7 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
 # ------------------ 函式：寫入 Google Sheet ------------------
-def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+def save_chat_to_google_sheet(user_name, messages, response):
     try:
         st.toast("\U0001F4BE 進入儲存函式！")
         st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
@@ -244,7 +244,7 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
 
         taipei_tz = pytz.timezone("Asia/Taipei")
         timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
-        row_data = [timestamp, user_name, user_msg, bot_msg]
+        row_data = [timestamp, user_name, messages, response]
         st.write(f"📤 嘗試寫入數據：{row_data}")
         st.write("🚀 準備執行 sheet.append_row")
         sheet.append_row(row_data)
@@ -255,6 +255,3 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
     except Exception as e:
         st.error(f"⚠️ 其他錯誤：{str(e)}")
-# ✅ 測試寫入按鈕
-if st.sidebar.button("✍️ 測試寫入一筆記錄"):
-    save_chat_to_google_sheet("測試用戶", "這是一條測試訊息", "這是機器人回應")
