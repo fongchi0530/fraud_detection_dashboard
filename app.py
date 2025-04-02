@@ -219,10 +219,13 @@ if user_input and user_input.strip():
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
 
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+    st.write("🛠️ save_chat_to_google_sheet 函式開始執行...")
+    st.write(f"使用者名稱: {user_name}, 使用者訊息: {user_msg}, 機器人回應: {bot_msg}")
 
 def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
-        st.write(f"🔍 正在儲存：{user_name}, {user_msg}, {bot_msg}")
+        st.write("🛠️ 開始執行 save_chat_to_google_sheet")
 
         # 讀取 Google Sheets API 憑證
         scope = ["https://spreadsheets.google.com/feeds",
@@ -230,39 +233,28 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
                  "https://www.googleapis.com/auth/drive"]
 
         creds_dict = json.loads(st.secrets["gcp_service_account"])
+        st.write("✅ 成功讀取 API 憑證")
+
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
+        st.write("✅ 成功授權 Google Sheets API")
 
-        # 確認 Google Sheets 是否可用
-        spreadsheet_name = "小詐詐聊天紀錄"  # 確保試算表名稱完全正確
-        try:
-            sheet = client.open(spreadsheet_name).sheet1
-            st.write(f"✅ 成功開啟試算表：{spreadsheet_name}")
-        except gspread.SpreadsheetNotFound:
-            st.error(f"⚠️ 找不到試算表：{spreadsheet_name}")
-            return
+        # 開啟試算表
+        sheet = client.open("小詐詐聊天紀錄").sheet1
+        st.write("✅ 成功開啟試算表")
 
-        # 確認 API 權限
-        test_write = ["測試", "API", "權限"]
-        try:
-            sheet.append_row(test_write)
-            st.write("✅ 測試寫入成功，API 權限正常")
-        except Exception as e:
-            st.error(f"⚠️ API 權限不足，寫入失敗：{str(e)}")
-            return
-
-        # 實際寫入對話
+        # 記錄時間
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 插入新的一行
         sheet.append_row([timestamp, user_name, user_msg, bot_msg])
-
-        st.write("✅ 對話已成功寫入 Google 試算表！")  # Debug 訊息
+        st.write("✅ 成功寫入資料到試算表")
 
     except gspread.exceptions.APIError as e:
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
-    except json.JSONDecodeError:
-        st.error("⚠️ 無法讀取 GCP 憑證，請確認 `st.secrets['gcp_service_account']` 是否有效。")
     except Exception as e:
-        st.error(f"⚠️ 發生錯誤：{str(e)}")
+        st.error(f"⚠️ 其他錯誤：{str(e)}")
+
 
 
 
