@@ -168,7 +168,6 @@ for msg in st.session_state.chat_openrouter:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-import requests
 
 st.subheader("🤖 小詐詐 GPT 聊天助手")
 
