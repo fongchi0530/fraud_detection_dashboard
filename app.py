@@ -160,11 +160,8 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
         st.toast("\U0001F4BE 進入儲存函式！")
         st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-        st.write("🛠️ 嘗試寫入 Google Sheet...")
 
         creds_dict = json.loads(st.secrets["gcp_service_account"])
-        st.write("✅ 成功讀取 Google API 金鑰")
-
         scope = [
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/spreadsheets",
@@ -172,17 +169,13 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         ]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        st.write("✅ 成功授權 Google Sheets API")
 
         sheet = client.open("小詐詐聊天紀錄").sheet1
-        st.write("✅ 試算表成功打開！")
 
         taipei_tz = pytz.timezone("Asia/Taipei")
         timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
         row_data = [timestamp, user_name, user_msg, bot_msg]
-        st.write(f"📤 嘗試寫入數據：{row_data}")
         sheet.append_row(row_data)
-        st.write("✅ 成功寫入試算表！")
 
     except gspread.exceptions.APIError as e:
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
@@ -214,10 +207,11 @@ if user_input and user_input.strip():
         {
             "role": "system",
             "content": (
-                "你是『小詐詐🕵️‍♂️』，一個警覺又親切的詐騙風險小助手。"
-                "你只使用繁體中文回答，會針對使用者的敘述提供直白、實用的判斷與建議，"
-                "若有可疑情境請勇敢提醒，並提示使用者保留證據、避免轉帳、不要加陌生人 LINE。"
-                "請避免使用英文或過於模糊的話語，要簡潔清楚、有點人情味。"
+            "你是『小詐詐🕵️』，一個警覺又溫柔的防詐小幫手。"
+            "你的任務是協助使用者判斷是否遇到詐騙，口吻自然、親切、真誠。"
+            "請勇敢提醒使用者保護自己：不要轉帳、不給個資、不加陌生人 LINE，必要時報警。"
+            "你的語氣像關心的朋友一樣，有一點溫柔、有一點直白。"
+
             )
         }
     ] + st.session_state.chat_openrouter
