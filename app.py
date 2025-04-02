@@ -154,6 +154,40 @@ if submit:
     else:
         st.success(f"✅ 看起來是正常商家，風險分數：{risk_score:.2f}")
         
+
+# ------------------ 函式：寫入 Google Sheet ------------------
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+    try:
+        st.toast("\U0001F4BE 進入儲存函式！")
+        st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
+        st.write("🛠️ 嘗試寫入 Google Sheet...")
+
+        creds_dict = json.loads(st.secrets["gcp_service_account"])
+        st.write("✅ 成功讀取 Google API 金鑰")
+
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
+        st.write("✅ 成功授權 Google Sheets API")
+
+        sheet = client.open("小詐詐聊天紀錄").sheet1
+        st.write("✅ 試算表成功打開！")
+
+        taipei_tz = pytz.timezone("Asia/Taipei")
+        timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
+        row_data = [timestamp, user_name, user_msg, bot_msg]
+        st.write(f"📤 嘗試寫入數據：{row_data}")
+        sheet.append_row(row_data)
+        st.write("✅ 成功寫入試算表！")
+
+    except gspread.exceptions.APIError as e:
+        st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
+    except Exception as e:
+        st.error(f"⚠️ 其他錯誤：{str(e)}")
 import requests
 st.subheader("🤖 小詐詐 GPT 聊天助手")
 
@@ -220,38 +254,3 @@ if user_input and user_input.strip():
     st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
 
     save_chat_to_google_sheet(user_name, user_input, reply)
-
-
-# ------------------ 函式：寫入 Google Sheet ------------------
-def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
-    try:
-        st.toast("\U0001F4BE 進入儲存函式！")
-        st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
-        st.write("🛠️ 嘗試寫入 Google Sheet...")
-
-        creds_dict = json.loads(st.secrets["gcp_service_account"])
-        st.write("✅ 成功讀取 Google API 金鑰")
-
-        scope = [
-            "https://spreadsheets.google.com/feeds",
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-        client = gspread.authorize(creds)
-        st.write("✅ 成功授權 Google Sheets API")
-
-        sheet = client.open("小詐詐聊天紀錄").sheet1
-        st.write("✅ 試算表成功打開！")
-
-        taipei_tz = pytz.timezone("Asia/Taipei")
-        timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
-        row_data = [timestamp, user_name, user_msg, bot_msg]
-        st.write(f"📤 嘗試寫入數據：{row_data}")
-        sheet.append_row(row_data)
-        st.write("✅ 成功寫入試算表！")
-
-    except gspread.exceptions.APIError as e:
-        st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
-    except Exception as e:
-        st.error(f"⚠️ 其他錯誤：{str(e)}")
