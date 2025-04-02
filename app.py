@@ -246,7 +246,9 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         timestamp = datetime.now(taipei_tz).strftime("%Y-%m-%d %H:%M:%S")
         row_data = [timestamp, user_name, user_msg, bot_msg]
         st.write(f"📤 嘗試寫入數據：{row_data}")
+        st.write("🚀 準備執行 sheet.append_row")
         sheet.append_row(row_data)
+        st.write("✅ append_row 成功執行")
         st.write("✅ 成功寫入試算表！")
 
     except gspread.exceptions.APIError as e:
