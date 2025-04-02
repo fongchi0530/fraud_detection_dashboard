@@ -216,10 +216,10 @@ if user_input and user_input.strip():
     with st.chat_message("assistant"):
         st.markdown(reply)
 try:
-    creds_dict = json.loads(st.secrets["gcp_service_account"])
-    st.write("✅ 成功讀取 Google API 金鑰")
+    sheet = client.open("小詐詐聊天紀錄").sheet1
+    st.write("✅ 成功開啟試算表")
 except Exception as e:
-    st.error(f"⚠️ Google API 金鑰讀取失敗: {str(e)}")
+    st.error(f"⚠️ 無法開啟試算表：{str(e)}")
 
 
     st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
