@@ -253,6 +253,3 @@ def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         st.error(f"⚠️ Google Sheets API 錯誤：{str(e)}")
     except Exception as e:
         st.error(f"⚠️ 其他錯誤：{str(e)}")
-
-# 測試寫入
-save_chat_to_google_sheet("測試用戶", "這是一條測試訊息", "這是機器人回應")
