@@ -223,7 +223,7 @@ if user_input and user_input.strip():
     save_chat_to_google_sheet(user_name , user_input, reply)
 
 
-ddef save_chat_to_google_sheet(user_name, user_msg, bot_msg):
+def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
     try:
         scope = ["https://spreadsheets.google.com/feeds",
                  "https://www.googleapis.com/auth/spreadsheets",
