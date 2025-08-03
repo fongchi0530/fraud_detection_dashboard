@@ -489,6 +489,8 @@ with tabs[2]:
     # 函式：寫入 Google Sheet
     def save_chat_to_google_sheet(user_name, user_msg, bot_msg):
         try:
+            st.toast("\U0001F4BE 進入儲存函式！")
+            st.write(f"🪪 使用者名稱：{user_name or '匿名'}")
             creds_dict = json.loads(st.secrets["gcp_service_account"])
             scope = [
                 "https://spreadsheets.google.com/feeds",
