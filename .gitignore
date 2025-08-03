@@ -19,3 +19,4 @@ __pycache__/
 # 操作系統生成的檔案
 .DS_Store
 Thumbs.db
+creditcard.csv 
