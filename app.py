@@ -544,7 +544,7 @@ with tabs[2]:
         try:
             with st.spinner("小詐詐努力判斷中，請稍候...🧠"):
                 response = requests.post("https://openrouter.ai/api/v1/chat/completions", 
-                                       headers=headers, json=data, timeout=10)
+                                       headers=headers, json=data, timeout=30)
                 res_json = response.json()
                 
                 if "choices" in res_json:
