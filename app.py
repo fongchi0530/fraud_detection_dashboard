@@ -538,6 +538,8 @@ with tabs[2]:
         
         data = {
             "model": "gryphe/mythomax-l2-13b",
+            "models": ["gryphe/mythomax-l2-13b",
+             "openai/gpt-3.5-turbo"],
             "messages": messages
         }
         
