@@ -19,3 +19,9 @@ __pycache__/
 # 操作系統生成的檔案
 .DS_Store
 Thumbs.db
+# 忽略大型資料檔案
+*.csv
+*.pkl
+
+# 允許精簡後模型上傳
+!slim_fraud_model.pkl
