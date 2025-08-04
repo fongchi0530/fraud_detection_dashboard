@@ -13,9 +13,18 @@ st.set_page_config(page_title="詐騙風險評估系統", layout="centered")
 
 # ===== 模型區塊 =====
 try:
-    model = joblib.load("slim_fraud_model.pkl")
-except:
-    st.error("❌ 找不到模型 slim_fraud_model.pkl，請確認模型檔案與本程式放在同一資料夾。")
+    cwd = os.getcwd()
+    st.info(f"📁 目前工作目錄：{cwd}")
+
+    files = os.listdir(cwd)
+    st.info(f"📄 目前資料夾內檔案：{files}")
+
+    model_path = os.path.join(cwd, "slim_fraud_model.pkl")
+    model = joblib.load(model_path)
+    st.success("✅ 模型已載入成功")
+
+except Exception as e:
+    st.error(f"❌ 找不到模型 slim_fraud_model.pkl，請確認模型檔案與本程式放在同一資料夾。\n錯誤細節：{str(e)}")
     st.stop()
 
 # ===== Google Sheet 紀錄函式 =====
