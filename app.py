@@ -2,7 +2,6 @@
 import streamlit as st
 import joblib
 import numpy as np
-import openai
 import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
