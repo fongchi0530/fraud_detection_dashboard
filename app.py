@@ -186,7 +186,7 @@ elif menu == "交易檢測":
     
     with col2:
         hour = st.selectbox(
-            "交易時間 (小時)",
+            "發生交易時間 (小時)",
             options=list(range(24)),
             index=12,
             help="選擇交易發生的時間"
@@ -281,7 +281,7 @@ elif menu == "交易檢測":
             with col2:
                 st.metric("風險分數", f"{min(risk_score, 95)}/100")
             with col3:
-                st.metric("可疑機率", f"{prob[1]*100:.1f}%")
+                st.metric("可疑機率", f"{1-prob[1]*100:.1f}%")
             
             if risk_factors:
                 st.warning("**風險因素：**")
@@ -299,7 +299,7 @@ elif menu == "交易檢測":
             with col2:
                 st.metric("風險分數", f"{risk_score}/100")
             with col3:
-                st.metric("可疑機率", f"{prob[1]*100:.1f}%")
+                st.metric("可疑機率", f"{1-prob[1]*100:.1f}%")
             
             if risk_factors:
                 st.info("**注意事項：**")
