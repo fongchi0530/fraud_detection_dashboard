@@ -82,10 +82,18 @@ st.title("信用卡交易監測系統")
 if model is None or df is None:
     st.error("系統初始化失敗：請確認模型檔案和資料集存在")
     st.stop()
-
+with st.sidebar:
+    st.title("👤 使用者資訊")
+    user_name = st.text_input("請輸入你的暱稱（可留空）", placeholder="例如：小美")
+    
+    if not user_name:
+        user_name = "匿名使用者"
+    
+    st.divider()
 menu = st.sidebar.selectbox(
     "功能選單",
     ["監控總覽", "交易檢測", "資料分析","小詐詐聊天"]
+
 )
 
 if menu == "監控總覽":
@@ -447,9 +455,9 @@ elif menu == "資料分析":
 
 
 elif menu == "小詐詐聊天":
-    st.header("🤖 小詐詐 GPT 聊天助手")
+    st.header(" 小詐詐 GPT 聊天助手")
 
-    with st.expander("💡 小詐詐能幫你什麼？", expanded=True):
+    with st.expander(" 小詐詐能幫你什麼？", expanded=True):
         st.markdown("""
             **小詐詐是你的防詐騙小助手！**
 
