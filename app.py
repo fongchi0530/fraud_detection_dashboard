@@ -548,7 +548,7 @@ elif menu == "小詐詐聊天":
         with st.chat_message("assistant"):
             st.markdown(reply)
         st.session_state.chat_openrouter.append({"role": "assistant", "content": reply})
-        save_chat_to_google_sheet("使用者", user_input, reply)
+        save_chat_to_google_sheet(user_name, user_input, reply)
 
 
 st.sidebar.divider()
