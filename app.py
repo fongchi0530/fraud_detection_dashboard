@@ -359,7 +359,10 @@ elif menu == "交易檢測":
         history = st.session_state['detection_history'][-5:]  # 顯示最近5筆
         history_df = pd.DataFrame([
             {
-                '時間': h['time']. now_tw(),
+                '時間': (
+                    (h['time'].astimezone(TW) if getattr(h['time'], 'tzinfo', None) else TW.localize(h['time']))
+                .strftime('%H:%M:%S') 
+                ),
                 '金額': f"${h['amount']:.2f}",
                 '風險': h['risk'],
                 '分數': h['score']
