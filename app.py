@@ -7,6 +7,9 @@ import json
 import requests
 import gspread
 import pytz
+TW = pytz.timezone("Asia/Taipei")
+def now_tw():
+    return datetime.now(TW)
 from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(
@@ -356,7 +359,7 @@ elif menu == "交易檢測":
         history = st.session_state['detection_history'][-5:]  # 顯示最近5筆
         history_df = pd.DataFrame([
             {
-                '時間': h['time'].strftime('%H:%M:%S'),
+                '時間': h['time']. datetime.now(),
                 '金額': f"${h['amount']:.2f}",
                 '風險': h['risk'],
                 '分數': h['score']
