@@ -342,7 +342,7 @@ elif menu == "交易檢測":
             st.session_state['detection_history'] = []
         
         st.session_state['detection_history'].append({
-            'time': pytz.timezone("Asia/Taipei"),
+            'time': datetime.now(),
             'amount': amount,
             'risk': '高' if pred == 1 or risk_score > 60 else ('中' if risk_score > 30 else '低'),
             'score': risk_score
@@ -356,7 +356,7 @@ elif menu == "交易檢測":
         history = st.session_state['detection_history'][-5:]  # 顯示最近5筆
         history_df = pd.DataFrame([
             {
-                '時間': h['time'].strftime("%Y-%m-%d %H:%M:%S")
+                '時間': h['time'].strftime('%Y-%m-%d %H:%M:%S'),
                 '金額': f"${h['amount']:.2f}",
                 '風險': h['risk'],
                 '分數': h['score']
