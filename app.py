@@ -10,15 +10,20 @@ import pytz
 TW = pytz.timezone("Asia/Taipei")
 
 def now_tw():
+    """取得台灣時區的現在時間（tz-aware）"""
     return datetime.now(TW)
 
 def to_tw(dt):
-    # tz-aware 直接轉台灣；naive 視為 UTC 再轉台灣
+    """把任何 datetime 轉成台灣時區：
+       - tz-aware：直接轉台灣
+       - naive：視為 UTC，再轉台灣
+    """
     if getattr(dt, "tzinfo", None) is None:
         dt = pytz.utc.localize(dt)
     return dt.astimezone(TW)
 
-def to_tw_str(dt, fmt="%H:%M:%S"):
+def to_tw_str(dt, fmt="%Y-%m-%d %H:%M:%S"):
+    """轉為台灣時區後再格式化成字串"""
     return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -227,7 +232,7 @@ elif menu == "交易檢測":
     
     # 立即執行檢測按鈕
     if st.button("立即檢測", type="primary", use_container_width=True):
-        
+        detected_at = now_tw()  
         # 計算風險分數
         risk_score = 0
         risk_factors = []
@@ -344,7 +349,7 @@ elif menu == "交易檢測":
                 f'${amount:.2f} USD',
                 f'{hour:02d}:00',
                 merchant,
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                detected_at.strftime('%Y-%m-%d %H:%M:%S'),
                 f'{max(prob)*100:.1f}%'
             ]
         })
@@ -369,7 +374,7 @@ elif menu == "交易檢測":
         history = st.session_state['detection_history'][-5:]  # 顯示最近5筆
         history_df = pd.DataFrame([
             {
-                '時間': to_tw_str(h['time'], "%Y-%m-%d %H:%M:%S"),
+                '時間': detected_at,
                 '金額': f"${h['amount']:.2f}",
                 '風險': h['risk'],
                 '分數': h['score']
