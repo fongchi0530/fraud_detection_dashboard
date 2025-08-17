@@ -7,20 +7,6 @@ import json
 import requests
 import gspread
 import pytz
-TW = pytz.timezone("Asia/Taipei")
-def now_tw():
-    return datetime.now(TW)
-def to_tw(dt):
-    """把任何 datetime 都轉成台灣時間：
-       - tz-aware：直接轉台灣
-       - naive：視為 UTC，再轉台灣
-    """
-    if getattr(dt, "tzinfo", None) is None:
-        dt = pytz.utc.localize(dt)      # 把 naive 視為 UTC
-    return dt.astimezone(TW)
-
-def to_tw_str(dt, fmt="%H:%M:%S"):
-    return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(
@@ -356,7 +342,7 @@ elif menu == "交易檢測":
             st.session_state['detection_history'] = []
         
         st.session_state['detection_history'].append({
-            'time': datetime.now(),
+            'time': pytz.timezone("Asia/Taipei"),
             'amount': amount,
             'risk': '高' if pred == 1 or risk_score > 60 else ('中' if risk_score > 30 else '低'),
             'score': risk_score
@@ -370,7 +356,7 @@ elif menu == "交易檢測":
         history = st.session_state['detection_history'][-5:]  # 顯示最近5筆
         history_df = pd.DataFrame([
             {
-                '時間': to_tw_str(h['time'], "%Y-%m-%d %H:%M:%S"),
+                '時間': h['time'].strftime("%Y-%m-%d %H:%M:%S")
                 '金額': f"${h['amount']:.2f}",
                 '風險': h['risk'],
                 '分數': h['score']
