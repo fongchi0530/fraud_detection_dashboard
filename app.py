@@ -108,7 +108,11 @@ with st.sidebar:
         user_name = "匿名使用者"
     
     st.divider()
-menu = st.radio("功能選單", ["監控總覽","資料分析","交易檢測","小詐詐聊天","情境腳本"], index=0)
+menu = st.sidebar.selectbox(
+    "功能選單",
+    ["監控總覽","資料分析","交易檢測","小詐詐聊天","情境腳本"]
+
+)
 
 if menu == "監控總覽":
     st.header("監控總覽")
@@ -184,7 +188,10 @@ if menu == "監控總覽":
 elif menu == "資料分析":
     st.header("交易資料分析")
     
-    analysis_type = st.radio("分析類型", ["資料概覽", "特徵分佈", "相關性分析"], index=0)
+    analysis_type = st.selectbox(
+        "分析類型",
+        ["資料概覽", "特徵分佈", "相關性分析"]
+    )
     
     if analysis_type == "資料概覽":
         col1, col2 = st.columns([2, 1])
@@ -592,8 +599,7 @@ elif menu == "情境腳本":
         ],
     }
 
-    scenario = st.radio("選擇情境", list(SCENARIOS.keys()), index=0)
-
+    scenario = st.selectbox("選擇情境", list(SCENARIOS.keys()))
 
     st.subheader("依序回答以下問題（越符合越高風險）")
     answers = []
