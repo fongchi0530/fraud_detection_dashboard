@@ -108,11 +108,7 @@ with st.sidebar:
         user_name = "匿名使用者"
     
     st.divider()
-menu = st.sidebar.selectbox(
-    "功能選單",
-    ["監控總覽","資料分析","交易檢測","小詐詐聊天","情境腳本"]
-
-)
+menu = st.radio("功能選單", ["監控總覽","資料分析","交易檢測","小詐詐聊天","情境腳本"], index=0)
 
 if menu == "監控總覽":
     st.header("監控總覽")
@@ -188,10 +184,7 @@ if menu == "監控總覽":
 elif menu == "資料分析":
     st.header("交易資料分析")
     
-    analysis_type = st.selectbox(
-        "分析類型",
-        ["資料概覽", "特徵分佈", "相關性分析"]
-    )
+    analysis_type = st.radio("分析類型", ["資料概覽", "特徵分佈", "相關性分析"], index=0)
     
     if analysis_type == "資料概覽":
         col1, col2 = st.columns([2, 1])
@@ -599,7 +592,8 @@ elif menu == "情境腳本":
         ],
     }
 
-    scenario = st.selectbox("選擇情境", list(SCENARIOS.keys()))
+    scenario = st.radio("選擇情境", list(SCENARIOS.keys()), index=0)
+
 
     st.subheader("依序回答以下問題（越符合越高風險）")
     answers = []
@@ -657,4 +651,4 @@ elif menu == "情境腳本":
 
 st.sidebar.divider()
 st.sidebar.caption("信用卡交易監測系統 v1.0")
-st.sidebar.caption(f"© 2025 | 最後更新: {datetime.now().strftime('%H:%M')}")
+st.sidebar.caption(f"© 2025 | 最後更新: {datetime.now().strftime('%m-%d')}")
