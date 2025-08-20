@@ -27,10 +27,6 @@ def to_tw_str(dt, fmt="%Y-%m-%d %H:%M:%S"):
     return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
 
-from pathlib import Path
-import requests
-import gdown
-
 st.set_page_config(
     page_title="信用卡交易監測系統",
     layout="wide",
@@ -70,22 +66,13 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    DATA_URL = st.secrets.get("https://drive.google.com/uc?export=download&id=1HC0WY392D0N2UejqEaiJBFhtk3vGb4Pn", "").strip()              # 例如 https://drive.google.com/uc?export=download&id=FILE_ID
-    DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
-    DATA_PATH = Path(DATA_FILENAME)
-
-    def download_dataset(url: str, dest: Path):
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        if "drive.google.com" in url:           # Google Drive：用 gdown 避免拿到 HTML 確認頁
-            gdown.download(url, str(dest), quiet=False, fuzzy=True)
-        else:                                    # 一般直連
-            with requests.get(url, stream=True, timeout=60) as r:
-                r.raise_for_status()
-                with open(dest, "wb") as f:
-                    for chunk in r.iter_content(1024 * 64):
-                        if chunk:
-                            f.write(chunk)
-
+    try:
+        df = pd.read_csv('1.csv')
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop('Unnamed: 0', axis=1)
+        return df
+    except:
+        return None
 
 def prepare_features(input_dict):
     df = pd.DataFrame([input_dict])
