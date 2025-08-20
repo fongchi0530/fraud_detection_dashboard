@@ -95,12 +95,12 @@ def predict_fraud(model, scaler, features, input_data):
 model, scaler, features, metrics = load_models()
 df = load_data()
 
-st.title("信用卡交易監測系統")
 
 if model is None or df is None:
     st.error("系統初始化失敗：請確認模型檔案和資料集存在")
     st.stop()
 with st.sidebar:
+    st.title(" 信用卡交易監測系統")
     st.title("👤 使用者資訊")
     user_name = st.text_input("請輸入你的暱稱（可留空）", placeholder="例如：小美")
     
@@ -569,7 +569,7 @@ elif menu == "小詐詐聊天":
         save_chat_to_google_sheet(user_name, user_input, reply)
 
 elif menu == "情境腳本":
-    st.header("🧭 情境腳本 / 使用者旅程")
+    st.header("情境腳本 / 使用者旅程")
     st.caption("以真實場景引導一般使用者辨識風險並學會正確處置。")
 
     # === 內建 4 個常見情境 ===
@@ -601,7 +601,7 @@ elif menu == "情境腳本":
 
     scenario = st.selectbox("選擇情境", list(SCENARIOS.keys()))
 
-    st.subheader("📝 依序回答以下問題（越符合越高風險）")
+    st.subheader("依序回答以下問題（越符合越高風險）")
     answers = []
     total_max = 0
     for idx, (q, choices) in enumerate(SCENARIOS[scenario], start=1):
@@ -615,7 +615,7 @@ elif menu == "情境腳本":
     score = int(sum(answers))
     ratio = score / max(1, total_max)
     st.divider()
-    st.subheader("📊 風險評估結果")
+    st.subheader("風險評估結果")
     st.progress(min(ratio, 1.0), text=f"風險分數 {score} / {total_max}")
 
     if ratio < 0.3:
@@ -629,7 +629,7 @@ elif menu == "情境腳本":
         level = "高"
 
     # --- 使用者旅程（教育視覺） ---
-    st.subheader("👣 使用者旅程（建議行為）")
+    st.subheader("使用者旅程（建議行為）")
     cols = st.columns(5)
     steps = ["接觸訊息", "辨識可疑點", "停止互動", "蒐證與求證", "回報/阻詐"]
     tips  = [
@@ -645,7 +645,7 @@ elif menu == "情境腳本":
             c.caption(tips[i])
 
     # --- 具體建議（依情境提供） ---
-    st.subheader("🛡️ 建議下一步")
+    st.subheader("建議下一步")
     if scenario == "購物平台假客服退款":
         st.info("- 只用平台內建客服，不私加 LINE\n- 官方不會要你去 ATM/提供 OTP\n- 立即改密碼、開啟簡訊 OTP")
     elif scenario == "商品交易：面交／貨到付款":
