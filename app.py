@@ -30,31 +30,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 from pathlib import Path
 import requests
 
-DATA_URL = st.secrets["DATA_URL"]
-DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
-DATA_PATH = Path(DATA_FILENAME)
-
-def download_dataset(url: str, dest: Path):
-    """下載資料集（支援 Streamlit 進度列）"""
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    CHUNK = 1024 * 64
-
-    with requests.get(url, stream=True, timeout=60) as r:
-        r.raise_for_status()
-        total = int(r.headers.get("content-length", 0))
-        prog = st.progress(0, text="🔽 正在下載資料集…")
-        written = 0
-        with open(dest, "wb") as f:
-            for chunk in r.iter_content(CHUNK):
-                if not chunk:
-                    continue
-                f.write(chunk)
-                written += len(chunk)
-                if total:
-                    prog.progress(min(written / total, 1.0),
-                                  text=f"🔽 已下載 {written/1e6:.1f} / {total/1e6:.1f} MB")
-        prog.empty()
-
 
 st.set_page_config(
     page_title="信用卡交易監測系統",
@@ -95,12 +70,47 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    if not DATA_PATH.exists():
-        download_dataset(DATA_URL, DATA_PATH)
-    df = pd.read_csv(DATA_PATH)
-    if "Unnamed: 0" in df.columns:
-        df = df.drop(columns=["Unnamed: 0"])
-    return df
+    # 從 secrets 讀設定；沒設就用預設檔名
+    DATA_URL = st.secrets.get("DATA_URL", "").strip()
+    DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
+    DATA_PATH = Path(DATA_FILENAME)
+
+    # 下載工具
+    def download_dataset(url: str, dest: Path):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        CHUNK = 1024 * 64
+        with requests.get(url, stream=True, timeout=60) as r:
+            r.raise_for_status()
+            with open(dest, "wb") as f:
+                for chunk in r.iter_content(CHUNK):
+                    if chunk:
+                        f.write(chunk)
+
+    try:
+        # 本機沒有就嘗試下載
+        if not DATA_PATH.exists():
+            if DATA_URL:
+                with st.spinner("🔽 正在下載資料集…"):
+                    download_dataset(DATA_URL, DATA_PATH)
+            else:
+                st.warning("找不到資料集，也未設定 DATA_URL。請上傳檔案或到 secrets 設定。")
+                file = st.file_uploader("上傳 creditcard.csv", type=["csv"])
+                if not file:
+                    return None
+                df = pd.read_csv(file)
+                if 'Unnamed: 0' in df.columns:
+                    df = df.drop(columns=['Unnamed: 0'])
+                return df
+
+        # 讀本機
+        df = pd.read_csv(DATA_PATH)
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop(columns=['Unnamed: 0'])
+        return df
+
+    except Exception as e:
+        st.error(f"讀取/下載資料失敗：{e}")
+        return None
 
 def prepare_features(input_dict):
     df = pd.DataFrame([input_dict])
