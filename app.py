@@ -29,7 +29,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 from pathlib import Path
 import requests
-
+import gdown
 
 st.set_page_config(
     page_title="信用卡交易監測系統",
@@ -70,47 +70,22 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    # 從 secrets 讀設定；沒設就用預設檔名
-    DATA_URL = st.secrets.get("DATA_URL", "").strip()
+    DATA_URL = st.secrets.get("DATA_URL", "").strip()              # 例如 https://drive.google.com/uc?export=download&id=FILE_ID
     DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
     DATA_PATH = Path(DATA_FILENAME)
 
-    # 下載工具
     def download_dataset(url: str, dest: Path):
         dest.parent.mkdir(parents=True, exist_ok=True)
-        CHUNK = 1024 * 64
-        with requests.get(url, stream=True, timeout=60) as r:
-            r.raise_for_status()
-            with open(dest, "wb") as f:
-                for chunk in r.iter_content(CHUNK):
-                    if chunk:
-                        f.write(chunk)
+        if "drive.google.com" in url:           # Google Drive：用 gdown 避免拿到 HTML 確認頁
+            gdown.download(url, str(dest), quiet=False, fuzzy=True)
+        else:                                    # 一般直連
+            with requests.get(url, stream=True, timeout=60) as r:
+                r.raise_for_status()
+                with open(dest, "wb") as f:
+                    for chunk in r.iter_content(1024 * 64):
+                        if chunk:
+                            f.write(chunk)
 
-    try:
-        # 本機沒有就嘗試下載
-        if not DATA_PATH.exists():
-            if DATA_URL:
-                with st.spinner("🔽 正在下載資料集…"):
-                    download_dataset(DATA_URL, DATA_PATH)
-            else:
-                st.warning("找不到資料集，也未設定 DATA_URL。請上傳檔案或到 secrets 設定。")
-                file = st.file_uploader("上傳 creditcard.csv", type=["csv"])
-                if not file:
-                    return None
-                df = pd.read_csv(file)
-                if 'Unnamed: 0' in df.columns:
-                    df = df.drop(columns=['Unnamed: 0'])
-                return df
-
-        # 讀本機
-        df = pd.read_csv(DATA_PATH)
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop(columns=['Unnamed: 0'])
-        return df
-
-    except Exception as e:
-        st.error(f"讀取/下載資料失敗：{e}")
-        return None
 
 def prepare_features(input_dict):
     df = pd.DataFrame([input_dict])
