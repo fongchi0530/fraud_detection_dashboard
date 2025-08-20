@@ -27,6 +27,35 @@ def to_tw_str(dt, fmt="%Y-%m-%d %H:%M:%S"):
     return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
 
+from pathlib import Path
+import requests
+
+DATA_URL = st.secrets["DATA_URL"]
+DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
+DATA_PATH = Path(DATA_FILENAME)
+
+def download_dataset(url: str, dest: Path):
+    """下載資料集（支援 Streamlit 進度列）"""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    CHUNK = 1024 * 64
+
+    with requests.get(url, stream=True, timeout=60) as r:
+        r.raise_for_status()
+        total = int(r.headers.get("content-length", 0))
+        prog = st.progress(0, text="🔽 正在下載資料集…")
+        written = 0
+        with open(dest, "wb") as f:
+            for chunk in r.iter_content(CHUNK):
+                if not chunk:
+                    continue
+                f.write(chunk)
+                written += len(chunk)
+                if total:
+                    prog.progress(min(written / total, 1.0),
+                                  text=f"🔽 已下載 {written/1e6:.1f} / {total/1e6:.1f} MB")
+        prog.empty()
+
+
 st.set_page_config(
     page_title="信用卡交易監測系統",
     layout="wide",
@@ -66,13 +95,12 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    try:
-        df = pd.read_csv('1.csv')
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop('Unnamed: 0', axis=1)
-        return df
-    except:
-        return None
+    if not DATA_PATH.exists():
+        download_dataset(DATA_URL, DATA_PATH)
+    df = pd.read_csv(DATA_PATH)
+    if "Unnamed: 0" in df.columns:
+        df = df.drop(columns=["Unnamed: 0"])
+    return df
 
 def prepare_features(input_dict):
     df = pd.DataFrame([input_dict])
