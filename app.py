@@ -70,7 +70,7 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    DATA_URL = st.secrets.get("DATA_URL", "").strip()              # 例如 https://drive.google.com/uc?export=download&id=FILE_ID
+    DATA_URL = st.secrets.get("https://drive.google.com/uc?export=download&id=1HC0WY392D0N2UejqEaiJBFhtk3vGb4Pn", "").strip()              # 例如 https://drive.google.com/uc?export=download&id=FILE_ID
     DATA_FILENAME = st.secrets.get("DATA_FILENAME", "creditcard.csv")
     DATA_PATH = Path(DATA_FILENAME)
 
