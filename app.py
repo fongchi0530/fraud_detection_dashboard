@@ -3,7 +3,12 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime, timedelta
-import json, requests, gspread, pytz, os, gdown
+import json
+import requests
+import gspread
+import pytz
+import os
+import gdown
 TW = pytz.timezone("Asia/Taipei")
 
 def now_tw():
