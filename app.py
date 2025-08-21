@@ -3,12 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime, timedelta
-import json
-import requests
-import gspread
-import pytz
-import os
-import gdown
+import json, requests, gspread, pytz, os, gdown
 TW = pytz.timezone("Asia/Taipei")
 
 def now_tw():
@@ -58,6 +53,25 @@ def ensure_creditcard_csv_local(local_path="creditcard.csv"):
         raise RuntimeError("下載失敗：沒有找到本機的 creditcard.csv")
     return local_path
 
+def prepare_features(input_dict):
+    df_tmp = pd.DataFrame([input_dict])
+    df_tmp['Amount_log'] = np.log1p(df_tmp['Amount'])
+    v_cols = [c for c in df_tmp.columns if c.startswith('V')]
+    if v_cols:
+        df_tmp['V_mean'] = df_tmp[v_cols].mean(axis=1)
+        df_tmp['V_std']  = df_tmp[v_cols].std(axis=1)
+        df_tmp['V_max']  = df_tmp[v_cols].max(axis=1)
+        df_tmp['V_min']  = df_tmp[v_cols].min(axis=1)
+    return df_tmp
+
+def predict_fraud(model, scaler, features, input_data):
+    X = prepare_features(input_data)
+    X = X[features]                # 對齊訓練時的特徵欄位
+    Xs = scaler.transform(X)       # 縮放
+    pred = model.predict(Xs)[0]
+    prob = model.predict_proba(Xs)[0]
+    return pred, prob
+
 st.set_page_config(
     page_title="信用卡交易監測系統",
     layout="wide",
@@ -95,29 +109,27 @@ def load_models():
     except:
         return None, None, None, None
 
-@st.cache_data(ttl=24*3600, show_spinner=False)  # 下載/讀檔結果快取 24 小時
+@st.cache_data(ttl=24*3600, show_spinner=False)
 def load_data():
     try:
         local_csv = ensure_creditcard_csv_local("creditcard.csv")
-        # 直接讀 creditcard.csv
         df = pd.read_csv(local_csv)
-
-        # 你原本的清理邏輯
         if 'Unnamed: 0' in df.columns:
             df = df.drop('Unnamed: 0', axis=1)
-
-        # 若欄位名是典型 Kaggle 版（Time, V1~V28, Amount, Class），可在這裡做保險檢查
         needed = {'Amount', 'Class'}
         missing = needed - set(df.columns)
         if missing:
             raise ValueError(f"缺少必要欄位：{missing}")
-
         return df
     except Exception as e:
         st.error(f"讀取 creditcard.csv 失敗：{e}")
         return None
 
+# 5) ★★★ 這裡再呼叫載入（關鍵）
+model, scaler, features, metrics = load_models()
+df = load_data()
 
+# 6) 檢查並繼續原本的頁面邏輯
 if model is None or df is None:
     st.error("系統初始化失敗：請確認模型檔案和資料集存在")
     st.stop()
