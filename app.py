@@ -3,10 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime, timedelta
-import json
-import requests
-import gspread
-import pytz
+import json, requests, gspread, pytz, os, gdown
 TW = pytz.timezone("Asia/Taipei")
 
 def now_tw():
@@ -26,6 +23,54 @@ def to_tw_str(dt, fmt="%Y-%m-%d %H:%M:%S"):
     """轉為台灣時區後再格式化成字串"""
     return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
+
+def ensure_creditcard_csv_local(local_path="creditcard.csv"):
+    """
+    確保本機有 creditcard.csv；若沒有，就從 Google Drive 下載。
+    """
+    if os.path.exists(local_path):
+        return local_path  # 已存在就直接用
+
+    # 從 secrets 取 Drive 檔案 ID
+    file_id = None
+    try:
+        # 先試環境變數／secrets（Streamlit Cloud）
+        file_id = st.secrets.get("GDRIVE_CREDIT_FILE_ID", "").strip()
+    except Exception:
+        pass
+
+    if not file_id:
+        # 退而求其次：你也可以直接把 ID 寫死，但不建議
+        raise RuntimeError("找不到 GDRIVE_CREDIT_FILE_ID，請到 Secrets 設定檔案 ID")
+
+    # gdown 下載（可處理 Google Drive 大檔、病毒掃描頁面）
+    url = f"https://drive.google.com/uc?id={file_id}&export=download"
+    # 顯示進度（可選）
+    with st.spinner("正在從 Google Drive 下載 creditcard.csv..."):
+        gdown.download(url, local_path, quiet=False)
+
+    if not os.path.exists(local_path):
+        raise RuntimeError("下載失敗：沒有找到本機的 creditcard.csv")
+    return local_path
+
+def prepare_features(input_dict):
+    df_tmp = pd.DataFrame([input_dict])
+    df_tmp['Amount_log'] = np.log1p(df_tmp['Amount'])
+    v_cols = [c for c in df_tmp.columns if c.startswith('V')]
+    if v_cols:
+        df_tmp['V_mean'] = df_tmp[v_cols].mean(axis=1)
+        df_tmp['V_std']  = df_tmp[v_cols].std(axis=1)
+        df_tmp['V_max']  = df_tmp[v_cols].max(axis=1)
+        df_tmp['V_min']  = df_tmp[v_cols].min(axis=1)
+    return df_tmp
+
+def predict_fraud(model, scaler, features, input_data):
+    X = prepare_features(input_data)
+    X = X[features]                # 對齊訓練時的特徵欄位
+    Xs = scaler.transform(X)       # 縮放
+    pred = model.predict(Xs)[0]
+    prob = model.predict_proba(Xs)[0]
+    return pred, prob
 
 st.set_page_config(
     page_title="信用卡交易監測系統",
@@ -64,38 +109,27 @@ def load_models():
     except:
         return None, None, None, None
 
-@st.cache_data
+@st.cache_data(ttl=24*3600, show_spinner=False)
 def load_data():
     try:
-        df = pd.read_csv('1.csv')
+        local_csv = ensure_creditcard_csv_local("creditcard.csv")
+        df = pd.read_csv(local_csv)
         if 'Unnamed: 0' in df.columns:
             df = df.drop('Unnamed: 0', axis=1)
+        needed = {'Amount', 'Class'}
+        missing = needed - set(df.columns)
+        if missing:
+            raise ValueError(f"缺少必要欄位：{missing}")
         return df
-    except:
+    except Exception as e:
+        st.error(f"讀取 creditcard.csv 失敗：{e}")
         return None
 
-def prepare_features(input_dict):
-    df = pd.DataFrame([input_dict])
-    df['Amount_log'] = np.log1p(df['Amount'])
-    v_cols = [col for col in df.columns if col.startswith('V')]
-    df['V_mean'] = df[v_cols].mean(axis=1)
-    df['V_std'] = df[v_cols].std(axis=1)
-    df['V_max'] = df[v_cols].max(axis=1)
-    df['V_min'] = df[v_cols].min(axis=1)
-    return df
-
-def predict_fraud(model, scaler, features, input_data):
-    df = prepare_features(input_data)
-    df = df[features]
-    scaled = scaler.transform(df)
-    pred = model.predict(scaled)[0]
-    prob = model.predict_proba(scaled)[0]
-    return pred, prob
-
+# 5) ★★★ 這裡再呼叫載入（關鍵）
 model, scaler, features, metrics = load_models()
 df = load_data()
 
-
+# 6) 檢查並繼續原本的頁面邏輯
 if model is None or df is None:
     st.error("系統初始化失敗：請確認模型檔案和資料集存在")
     st.stop()
