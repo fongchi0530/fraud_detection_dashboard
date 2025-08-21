@@ -7,6 +7,8 @@ import json
 import requests
 import gspread
 import pytz
+import os
+import gdown
 TW = pytz.timezone("Asia/Taipei")
 
 def now_tw():
@@ -26,6 +28,35 @@ def to_tw_str(dt, fmt="%Y-%m-%d %H:%M:%S"):
     """轉為台灣時區後再格式化成字串"""
     return to_tw(dt).strftime(fmt)
 from oauth2client.service_account import ServiceAccountCredentials
+
+def ensure_creditcard_csv_local(local_path="creditcard.csv"):
+    """
+    確保本機有 creditcard.csv；若沒有，就從 Google Drive 下載。
+    """
+    if os.path.exists(local_path):
+        return local_path  # 已存在就直接用
+
+    # 從 secrets 取 Drive 檔案 ID
+    file_id = None
+    try:
+        # 先試環境變數／secrets（Streamlit Cloud）
+        file_id = st.secrets.get("GDRIVE_CREDIT_FILE_ID", "").strip()
+    except Exception:
+        pass
+
+    if not file_id:
+        # 退而求其次：你也可以直接把 ID 寫死，但不建議
+        raise RuntimeError("找不到 GDRIVE_CREDIT_FILE_ID，請到 Secrets 設定檔案 ID")
+
+    # gdown 下載（可處理 Google Drive 大檔、病毒掃描頁面）
+    url = f"https://drive.google.com/uc?id={file_id}&export=download"
+    # 顯示進度（可選）
+    with st.spinner("正在從 Google Drive 下載 creditcard.csv..."):
+        gdown.download(url, local_path, quiet=False)
+
+    if not os.path.exists(local_path):
+        raise RuntimeError("下載失敗：沒有找到本機的 creditcard.csv")
+    return local_path
 
 st.set_page_config(
     page_title="信用卡交易監測系統",
@@ -64,36 +95,27 @@ def load_models():
     except:
         return None, None, None, None
 
-@st.cache_data
+@st.cache_data(ttl=24*3600, show_spinner=False)  # 下載/讀檔結果快取 24 小時
 def load_data():
     try:
-        df = pd.read_csv('1.csv')
+        local_csv = ensure_creditcard_csv_local("creditcard.csv")
+        # 直接讀 creditcard.csv
+        df = pd.read_csv(local_csv)
+
+        # 你原本的清理邏輯
         if 'Unnamed: 0' in df.columns:
             df = df.drop('Unnamed: 0', axis=1)
+
+        # 若欄位名是典型 Kaggle 版（Time, V1~V28, Amount, Class），可在這裡做保險檢查
+        needed = {'Amount', 'Class'}
+        missing = needed - set(df.columns)
+        if missing:
+            raise ValueError(f"缺少必要欄位：{missing}")
+
         return df
-    except:
+    except Exception as e:
+        st.error(f"讀取 creditcard.csv 失敗：{e}")
         return None
-
-def prepare_features(input_dict):
-    df = pd.DataFrame([input_dict])
-    df['Amount_log'] = np.log1p(df['Amount'])
-    v_cols = [col for col in df.columns if col.startswith('V')]
-    df['V_mean'] = df[v_cols].mean(axis=1)
-    df['V_std'] = df[v_cols].std(axis=1)
-    df['V_max'] = df[v_cols].max(axis=1)
-    df['V_min'] = df[v_cols].min(axis=1)
-    return df
-
-def predict_fraud(model, scaler, features, input_data):
-    df = prepare_features(input_data)
-    df = df[features]
-    scaled = scaler.transform(df)
-    pred = model.predict(scaled)[0]
-    prob = model.predict_proba(scaled)[0]
-    return pred, prob
-
-model, scaler, features, metrics = load_models()
-df = load_data()
 
 
 if model is None or df is None:
