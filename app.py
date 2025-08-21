@@ -57,8 +57,7 @@ def ensure_creditcard_csv_local(local_path="creditcard.csv"):
     if not os.path.exists(local_path):
         raise RuntimeError("下載失敗：沒有找到本機的 creditcard.csv")
     return local_path
-model, scaler, features, metrics = load_models()
-df = load_data()
+
 def prepare_features(input_dict):
     df_tmp = pd.DataFrame([input_dict])
     df_tmp['Amount_log'] = np.log1p(df_tmp['Amount'])
@@ -136,7 +135,9 @@ def load_data():
     except Exception as e:
         st.error(f"讀取 creditcard.csv 失敗：{e}")
         return None
-
+    
+model, scaler, features, metrics = load_models()
+df = load_data()
 
 if model is None or df is None:
     st.error("系統初始化失敗：請確認模型檔案和資料集存在")
