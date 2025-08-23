@@ -691,4 +691,17 @@ elif menu == "情境腳本":
 
 st.sidebar.divider()
 st.sidebar.caption("信用卡交易監測系統 v1.0")
-st.sidebar.caption(f"© 2025 | 最後更新: {datetime.now().strftime('%m-%d')}")
+import subprocess
+
+def get_last_commit_time():
+    try:
+        git_time = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cd", "--date=short"],
+            universal_newlines=True
+        ).strip()
+        return git_time
+    except Exception:
+        return "未知"
+
+last_update = get_last_commit_time()
+st.sidebar.caption(f"© 2025 | 最後更新: {last_update}")
