@@ -704,4 +704,4 @@ def get_last_commit_time():
         return "未知"
 
 last_update = get_last_commit_time()
-st.sidebar.caption(f"© 2025 | 最後更新: {last_update}")
+st.sidebar.caption(f"© 最後更新: {last_update}")
